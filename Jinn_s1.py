@@ -36,21 +36,11 @@ def is_termux():
 def download_script():
     if not os.path.exists("JINN8_enc.py"):
         print(f"{Y}[!] Downloading JINN Script...{W}")
-        cmd = f"curl -H 'Authorization: token {GITHUB_TOKEN}' -L {SCRIPT_URL} -o JINN8_enc.py"
-        os.system(cmd)
+        os.system(f"curl -sL {SCRIPT_URL} -o JINN8_enc.py")
         os.system("chmod 777 JINN8_enc.py")
-        
-        # Check if file exists and is not an HTML error page
-        if not os.path.exists("JINN8_enc.py") or os.path.getsize("JINN8_enc.py") < 100:
-            print(f"{R}[X] Failed to download script or file is too small!{W}")
+        if not os.path.exists("JINN8_enc.py"):
+            print(f"{R}[X] Failed to download script!{W}")
             sys.exit(1)
-        
-        with open("JINN8_enc.py", "r", encoding="utf-8", errors="ignore") as f:
-            content = f.read()
-            if "<html" in content.lower():
-                print(f"{R}[X] Error: Downloaded file is not a valid Python script!{W}")
-                os.remove("JINN8_enc.py")
-                sys.exit(1)
 
 def check_approval(key):
     try:
