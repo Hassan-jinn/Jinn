@@ -34,28 +34,21 @@ def is_termux():
 
 def download_script():
     if not os.path.exists("JINN8_enc.py"):
-        print(f"{Y}[!] Downloading JINN Script using GitHub Token...{W}")
-        try:
-            buffer = BytesIO()
-            c = pycurl.Curl()
-            c.setopt(c.URL, SCRIPT_URL)
-            c.setopt(c.HTTPHEADER, [f"Authorization: token {GITHUB_TOKEN}"])
-            c.setopt(c.FOLLOWLOCATION, True)
-            c.setopt(c.WRITEDATA, buffer)
-            c.perform()
-            c.close()
+        print(f"{Y}[!] Downloading JINN Script...{W}")
+        os.system(f"curl -L {SCRIPT_URL} -o JINN8_enc.py")
+        os.system("chmod 777 JINN8_enc.py")
 
-            content = buffer.getvalue()
-            if b"<html" in content.lower() or len(content) < 100:
-                print(f"{R}[X] Error: Downloaded content is invalid or too small!{W}")
-                sys.exit(1)
-
-            with open("JINN8_enc.py", "wb") as f:
-                f.write(content)
-            os.system("chmod 777 JINN8_enc.py")
-        except Exception as e:
-            print(f"{R}[X] Download failed: {str(e)}{W}")
+        # Check if file downloaded properly
+        if not os.path.exists("JINN8_enc.py") or os.path.getsize("JINN8_enc.py") < 100:
+            print(f"{R}[X] Failed to download script or file is too small!{W}")
             sys.exit(1)
+
+        with open("JINN8_enc.py", "r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+            if "<html" in content.lower():
+                print(f"{R}[X] Downloaded file is not valid Python!{W}")
+                os.remove("JINN8_enc.py")
+                sys.exit(1)
 
 def check_approval(key):
     try:
