@@ -13,7 +13,7 @@ import fcntl
 # Security Constants
 GITHUB_TOKEN = "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"
 APPROVAL_URL = "https://github.com/1-NALLA/Jinn_App/blob/main/App.txt"
-SCRIPT_URL = "https://github.com/1-NALLA/File1/raw/main/JINN8_enc.py"
+SCRIPT_URL = "https://raw.githubusercontent.com/1-NALLA/File1/main/JINN8_enc.py"
 LOCK_FILE = "/data/data/com.termux/files/usr/tmp/JINN8_enc.py.lock"
 
 # Colors
@@ -35,11 +35,27 @@ def is_termux():
 
 def download_script():
     if not os.path.exists("JINN8_enc.py"):
-        print(f"{Y}[!] Downloading JINN Script...{W}")
-        os.system(f"curl -sL {SCRIPT_URL} -o JINN8_enc.py")
-        os.system("chmod 777 JINN8_enc.py")
-        if not os.path.exists("JINN8_enc.py"):
-            print(f"{R}[X] Failed to download script!{W}")
+        print(f"{Y}[!] Downloading JINN Script using GitHub Token...{W}")
+        try:
+            buffer = BytesIO()
+            c = pycurl.Curl()
+            c.setopt(c.URL, SCRIPT_URL)
+            c.setopt(c.HTTPHEADER, [f"Authorization: token {GITHUB_TOKEN}"])
+            c.setopt(c.FOLLOWLOCATION, True)
+            c.setopt(c.WRITEDATA, buffer)
+            c.perform()
+            c.close()
+
+            content = buffer.getvalue()
+            if b"<html" in content.lower() or len(content) < 100:
+                print(f"{R}[X] Error: Downloaded content is invalid or too small!{W}")
+                sys.exit(1)
+
+            with open("JINN8_enc.py", "wb") as f:
+                f.write(content)
+            os.system("chmod 777 JINN8_enc.py")
+        except Exception as e:
+            print(f"{R}[X] Download failed: {str(e)}{W}")
             sys.exit(1)
 
 def check_approval(key):
