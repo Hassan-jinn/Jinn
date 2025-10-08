@@ -23,5 +23,5 @@ jobs:
       run: python admin_approve.py --clean  # Assume admin script mein --clean flag add (niche kiya hai)
     - name: Run Client Script (Test)
       env:
-        FINE_GRAINED_PAT: ${{ secrets.FINE_GRAINED_PAT }}
+        FINE_GRAINED_PAT: ${{ secrets.MY_PAT_TOKEN }}
       run: python JINN1.py  # Ya ./JINN1 if compiled – test ke liye
