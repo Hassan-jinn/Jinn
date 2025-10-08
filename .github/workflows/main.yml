@@ -1,0 +1,27 @@
+name: JINN Approval Workflow
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+
+jobs:
+  clean-and-run:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: pip install requests base64 re hmac hashlib
+    - name: Clean Expired Keys
+      env:
+        MY_PAT_TOKEN: ${{ secrets.MY_PAT_TOKEN }}  # Full access for update
+      run: python admin_approve.py --clean  # Assume admin script mein --clean flag add (niche kiya hai)
+    - name: Run Client Script (Test)
+      env:
+        FINE_GRAINED_PAT: ${{ secrets.FINE_GRAINED_PAT }}
+      run: python JINN1.py  # Ya ./JINN1 if compiled – test ke liye
