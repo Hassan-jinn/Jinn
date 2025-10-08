@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '0 0 * * *'  # Daily at midnight UTC
+    - cron: '0 0 * * *'  # Daily clean at midnight
 
 jobs:
   clean-and-run:
@@ -16,12 +16,12 @@ jobs:
       with:
         python-version: '3.x'
     - name: Install dependencies
-      run: pip install requests base64 re hmac hashlib
-    - name: Clean Expired Keys
+      run: pip install requests
+    - name: Clean Expired Keys (Admin)
       env:
-        MY_PAT_TOKEN: ${{ secrets.MY_PAT_TOKEN }}  # Full access for update
-      run: python admin_approve.py --clean  # Assume admin script mein --clean flag add (niche kiya hai)
-    - name: Run Client Script (Test)
+        MY_PAT_TOKEN: ${{ secrets.MY_PAT_TOKEN }}  # Full access for updates
+      run: python admin_approve.py --clean
+    - name: Run Client Script Test (Verify)
       env:
-        FINE_GRAINED_PAT: ${{ secrets.MY_PAT_TOKEN }}
-      run: python JINN1.py  # Ya ./JINN1 if compiled – test ke liye
+        MY_PAT_TOKEN: ${{ secrets.MY_PAT_TOKEN }}  # Changed to match script
+      run: |
