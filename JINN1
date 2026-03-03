@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# ==========================================
+#              JINN COMMAND
+# ==========================================
+
+ARCH=$(uname -m)
+
+echo -e "\e[1;36m[*] Checking Device Architecture: $ARCH\e[0m"
+
+# Agar 64-bit Mobile hai (aarch64)
+if [[ "$ARCH" == "aarch64" ]]; then
+    echo -e "\e[1;32m[*] 64-Bit Device Detected. Launching JINN64...\e[0m"
+    chmod +x JINN64
+    ./JINN64 "$@"
+
+# Agar 32-bit Mobile hai (armv7l, armv8l, etc.)
+elif [[ "$ARCH" == armv* ]]; then
+    echo -e "\e[1;32m[*] 32-Bit Device Detected. Launching JINN32...\e[0m"
+    chmod +x JINN32
+    ./JINN32 "$@"
+
+# Agar PC ya Emulator hai (BlueStacks, LDPlayer)
+elif [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "i686" ]]; then
+    echo -e "\e[1;33m[*] Emulator/PC Detected. Launching JINN32...\e[0m"
+    chmod +x JINN32
+    ./JINN32 "$@"
+
+# Agar koi ajeeb hi device aa jaye
+else
+    echo -e "\e[1;31m[!] Error: Unsupported Architecture ($ARCH)\e[0m"
+fi
