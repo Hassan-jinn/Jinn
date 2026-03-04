@@ -1,33 +1,50 @@
 #!/bin/bash
 
 # ==========================================
-#              JINN COMMAND 
-# ==========================================
 
-# Mobile ka architecture check karna
+# Colors
+G='\e[1;32m'
+R='\e[1;31m'
+C='\e[1;36m'
+Y='\e[1;33m'
+W='\e[0m'
+
+echo -e "${C}[*] JINN V16 Checking System Health...${W}"
+
+# --- STEP 1: PYTHON VERSION CHECK & AUTO-FIX ---
+# Python ka version number nikalna
+PY_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
+
+if [ "$PY_VER" != "3.13" ]; then
+    echo -e "${Y}[!] Outdated System Detected. Auto-fixing Termux Repositories...${W}"
+    
+    # 1. Dead Server hata kar Official Zinda Server lagana
+    echo "deb https://packages.termux.dev/apt/termux-main stable main" > $PREFIX/etc/apt/sources.list
+    
+    # 2. Khamoshi se sab kuch update karna
+    echo -e "${Y}[*] Installing Python 3.13 (Please wait, DO NOT CLOSE)...${W}"
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -y -q
+    apt-get install -y -q -o Dpkg::Options::="--force-confold" python
+    
+    # 3. Zaroori modules lagana
+    pip install requests pycryptodome rich -q
+    
+    echo -e "${G}[✔] System Successfully Upgraded to Python 3.13!${W}"
+else
+    echo -e "${G}[✔] Python System is Perfect.${W}"
+fi
+
+# --- STEP 2: SMART LAUNCHER ---
 ARCH=$(uname -m)
+echo -e "${C}[*] Booting Engine for: $ARCH${W}"
 
-echo -e "\e[1;36m[*] Checking Device Architecture: $ARCH\e[0m"
-
-# Agar 64-bit Mobile hai (aarch64)
 if [[ "$ARCH" == "aarch64" ]]; then
-    echo -e "\e[1;32m[*] 64-Bit Device Detected. Launching JINN64...\e[0m"
     chmod +x JINN64
     ./JINN64 "$@"
-
-# Agar 32-bit Mobile hai (armv7l, armv8l, etc.)
-elif [[ "$ARCH" == armv* ]]; then
-    echo -e "\e[1;32m[*] 32-Bit Device Detected. Launching JINN32...\e[0m"
+elif [[ "$ARCH" == armv* ]] || [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "i686" ]]; then
     chmod +x JINN32
     ./JINN32 "$@"
-
-# Agar PC ya Emulator hai (BlueStacks, LDPlayer)
-elif [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "i686" ]]; then
-    echo -e "\e[1;33m[*] Emulator/PC Detected. Launching JINN32...\e[0m"
-    chmod +x JINN32
-    ./JINN32 "$@"
-
-# Agar inke ilawa koi ajeeb device ho
 else
-    echo -e "\e[1;31m[!] Error: Unsupported Architecture ($ARCH)\e[0m"
+    echo -e "${R}[!] Fatal Error: Unrecognized Architecture ($ARCH)${W}"
 fi
