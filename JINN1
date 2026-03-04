@@ -1,32 +1,40 @@
 #!/bin/bash
 
 # ==========================================
-#              JINN COMMAND
+#      JINN V16 UNIVERSAL LOADER (PRO)
 # ==========================================
 
-ARCH=$(uname -m)
+# 1. AUTO-FIX: Missing Python Library Error
+if [ -d "/data/data/com.termux/files/usr/lib" ]; then
+    export LD_LIBRARY_PATH=/data/data/com.termux/files/usr/lib:$LD_LIBRARY_PATH
+    # Agar .1.0 wali file nahi hai, to khud bana do
+    if [ ! -f "/data/data/com.termux/files/usr/lib/libpython3.12.so.1.0" ] && [ -f "/data/data/com.termux/files/usr/lib/libpython3.12.so" ]; then
+        ln -s "/data/data/com.termux/files/usr/lib/libpython3.12.so" "/data/data/com.termux/files/usr/lib/libpython3.12.so.1.0" 2>/dev/null
+    fi
+fi
 
+# 2. DEVICE ARCHITECTURE CHECK
+ARCH=$(uname -m)
 echo -e "\e[1;36m[*] Checking Device Architecture: $ARCH\e[0m"
 
-# Agar 64-bit Mobile hai (aarch64)
+# 64-bit Mobile (aarch64)
 if [[ "$ARCH" == "aarch64" ]]; then
     echo -e "\e[1;32m[*] 64-Bit Device Detected. Launching JINN64...\e[0m"
     chmod +x JINN64
     ./JINN64 "$@"
 
-# Agar 32-bit Mobile hai (armv7l, armv8l, etc.)
+# 32-bit Mobile (armv7l, armv8l, etc.)
 elif [[ "$ARCH" == armv* ]]; then
     echo -e "\e[1;32m[*] 32-Bit Device Detected. Launching JINN32...\e[0m"
     chmod +x JINN32
     ./JINN32 "$@"
 
-# Agar PC ya Emulator hai (BlueStacks, LDPlayer)
+# PC / Emulators (x86_64 / i686)
 elif [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "i686" ]]; then
     echo -e "\e[1;33m[*] Emulator/PC Detected. Launching JINN32...\e[0m"
     chmod +x JINN32
     ./JINN32 "$@"
 
-# Agar koi ajeeb hi device aa jaye
 else
     echo -e "\e[1;31m[!] Error: Unsupported Architecture ($ARCH)\e[0m"
 fi
