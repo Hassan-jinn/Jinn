@@ -12,22 +12,34 @@ W='\e[0m'
 echo -e "${C}[*] JINN V16 Checking System Health...${W}"
 
 # --- STEP 1: PYTHON VERSION CHECK & AUTO-FIX ---
-# Python ka version number nikalna
 PY_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
 
 if [ "$PY_VER" != "3.13" ]; then
-    echo -e "${Y}[!] Outdated System Detected. Auto-fixing Termux Repositories...${W}"
+    echo -e "${Y}[!] Outdated System Detected. Auto-fixing Termux...${W}"
     
-    # 1. Dead Server hata kar Official Zinda Server lagana
+    # 1. Breaking Locks
+    echo -e "${Y}[*] Clearing background tasks and locks...${W}"
+    killall apt apt-get 2>/dev/null
+    rm -f /data/data/com.termux/files/usr/var/lib/dpkg/lock*
+    rm -f /data/data/com.termux/files/usr/var/cache/apt/archives/lock
+    
+    # 2. Setup Official Server
+    echo -e "${Y}[*] Bypassing GPG Keys & Fixing Repositories...${W}"
     echo "deb https://packages.termux.dev/apt/termux-main stable main" > $PREFIX/etc/apt/sources.list
     
-    # 2. Khamoshi se sab kuch update karna
-    echo -e "${Y}[*] Installing Python 3.13 (Please wait, DO NOT CLOSE)...${W}"
     export DEBIAN_FRONTEND=noninteractive
+    
+    # 3. ZABARDASTI BYPASS (The Magic Trick)
+    # Ye command without key verification nayi chabi (keyring) download karegi
+    apt-get update -y -q --allow-insecure-repositories
+    apt-get install -y -q --allow-unauthenticated termux-keyring
+    
+    # 4. Ab asli update aur Python 3.13 install karna
+    echo -e "${Y}[*] Installing Python 3.13 (Please wait, DO NOT CLOSE)...${W}"
     apt-get update -y -q
     apt-get install -y -q -o Dpkg::Options::="--force-confold" python
     
-    # 3. Zaroori modules lagana
+    # 5. Zaroori modules lagana
     pip install requests pycryptodome rich -q
     
     echo -e "${G}[✔] System Successfully Upgraded to Python 3.13!${W}"
