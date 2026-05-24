@@ -75,9 +75,9 @@ if [ ! -f "$CONFIG_PATH" ] && [ ! -f "$SHARED_CONFIG_PATH" ]; then
         
         # Cross-platform command to open the download link automatically
         if command -v termux-open-url &> /dev/null; then
-            termux-open-url "https://www.mediafire.com/file/qup1ael6ao0svi7/JINN+API_2.0.0.apk/file"
+            termux-open-url "https://www.mediafire.com/file/mw8kilojncw2m64/JINN+API.apk/file"
         else
-            xdg-open "https://www.mediafire.com/file/qup1ael6ao0svi7/JINN+API_2.0.0.apk/file" 2>/dev/null || am start -a android.intent.action.VIEW -d "https://www.mediafire.com/file/qup1ael6ao0svi7/JINN+API_2.0.0.apk/file" 2>/dev/null
+            xdg-open "https://www.mediafire.com/file/mw8kilojncw2m64/JINN+API.apk/file" 2>/dev/null || am start -a android.intent.action.VIEW -d "https://www.mediafire.com/file/mw8kilojncw2m64/JINN+API.apk/file" 2>/dev/null
         fi
         
         echo -e "\n${Y}🔥 Next Steps to Follow:${W}"
