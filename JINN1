@@ -42,16 +42,22 @@ if [ "$PY_VER" != "3.13" ]; then
     apt-get update -y -q
     apt-get install -y -q -o Dpkg::Options::="--force-confold" python
     
-    # Libraries ko naye Python (Cloud DRM ECDSA) ke liye install karna
+    # Libraries ko naye Python (JINN V17) ke liye install karna
     echo -e "${Y}[*] Installing required modules for JINN V17...${W}"
-    python3 -m pip install requests cryptography rich urllib3 pycryptodome --quiet
+    python3 -m pip install requests rich urllib3 pycryptodome --quiet
+    
+    # Cryptography ko safely install karna (agar needed ho)
+    echo -e "${Y}[*] Installing Cryptography (Termux compatible)...${W}"
+    python3 -m pip install --upgrade pip setuptools wheel --quiet 2>/dev/null
+    python3 -m pip install cryptography --prefer-binary --quiet 2>/dev/null || echo -e "${Y}[!] Cryptography installation skipped - using pycryptodome instead${W}"
     
     echo -e "${G}[✔] System Successfully Upgraded to 3.13 with all modules!${W}"
 else
-    # Agar 3.13 pehle se hai, magar ECDSA libraries missing hain
-    if ! python3 -c "import requests, cryptography, rich, urllib3, Cryptodome" &>/dev/null; then
+    # Agar 3.13 pehle se hai, magar modules missing hain
+    if ! python3 -c "import requests, rich, urllib3, Cryptodome" &>/dev/null; then
         echo -e "${Y}[!] Modules missing in Python 3.13. Installing now...${W}"
-        python3 -m pip install requests cryptography rich urllib3 pycryptodome --quiet
+        python3 -m pip install requests rich urllib3 pycryptodome --quiet
+        python3 -m pip install cryptography --prefer-binary --quiet 2>/dev/null || true
     fi
     echo -e "${G}[✔] System is Healthy.${W}"
 fi
