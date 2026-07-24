@@ -38,14 +38,14 @@ if [ "$PY_VER" != "3.13" ]; then
     apt-get update -y -q
     apt-get install -y -q -o Dpkg::Options::="--force-confold" python
     
-    echo -e "${Y}[*] Installing required modules for JINN V17...${W}"
+    echo -e "${Y}[*] Installing required modules for JINN Command...${w}"
     # 🔥 FIX: cryptography removed, only pycryptodome required!
     python3 -m pip install requests rich urllib3 pycryptodome --quiet
     
-    echo -e "${G}[✔] System Successfully Upgraded to 3.13 with all modules!${W}"
+    echo -e "${G}[✔] System Successfully Upgraded to 3.14 with all modules!${W}"
 else
     if ! python3 -c "import requests, rich, urllib3, Cryptodome" &>/dev/null; then
-        echo -e "${Y}[!] Modules missing in Python 3.13. Installing now...${W}"
+        echo -e "${Y}[!] Modules missing in Python 3.14. Installing now...${W}"
         python3 -m pip install requests rich urllib3 pycryptodome --quiet
     fi
     echo -e "${G}[✔] System is Healthy.${W}"
