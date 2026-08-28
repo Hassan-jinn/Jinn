@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==========================================
-#        JINN COMMAND LAUNCHER 
+#        JINN COMMAND LAUNCHER (PRO)
 # ==========================================
 
 # Colors
@@ -16,42 +16,51 @@ echo -e "${C}==========================================${W}"
 echo -e "${G}         JINN COMMAND LAUNCHER            ${W}"
 echo -e "${C}==========================================${W}"
 
-echo -e "${C}[*] Checking System Health...${W}"
+# --- STEP 1: STORAGE PERMISSION CHECK ---
+echo -e "${C}[*] Checking Storage Permissions...${W}"
+if [ ! -d "$HOME/storage/shared" ]; then
+    echo -e "${Y}[!] Storage permission is required. Please ALLOW the popup.${W}"
+    termux-setup-storage
+    sleep 5
+fi
 
-# --- STEP 1: LOCK & REPO FIX ---
+# Deep check to verify write access
+if ! touch /sdcard/.jinn_permission_test 2>/dev/null; then
+    echo -e "${R}[!] FATAL: Storage permission was NOT granted!${W}"
+    echo -e "${Y}Please go to Settings > Apps > Termux > Permissions and allow Storage.${W}"
+    exit 1
+else
+    rm -f /sdcard/.jinn_permission_test
+    echo -e "${G}[✔] Storage Access Verified.${W}"
+fi
+
+# --- STEP 2: SYSTEM HEALTH & PACKAGE CHECK ---
+echo -e "${C}[*] Checking System Health & Dependencies...${W}"
+
+# Fix broken apt locks silently
 killall apt apt-get 2>/dev/null
 rm -f /data/data/com.termux/files/usr/var/lib/dpkg/lock*
 
-echo "deb https://packages.termux.dev/apt/termux-main stable main" > $PREFIX/etc/apt/sources.list
-
-# --- STEP 2: VERSION & MODULE CHECK ---
-PY_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)
-
-if [ "$PY_VER" != "3.13" ]; then
-    echo -e "${Y}[!] System Upgrade Required. Fixing Termux...${W}"
+# Check if Python is installed
+if ! command -v python3 &> /dev/null; then
+    echo -e "${Y}[*] Python not found. Installing Python...${W}"
     export DEBIAN_FRONTEND=noninteractive
-    
-    apt-get update -y -q --allow-insecure-repositories
-    apt-get install -y -q --allow-unauthenticated termux-keyring
-    
-    echo -e "${Y}[*] Installing Python 3.13...${W}"
-    apt-get update -y -q
-    apt-get install -y -q -o Dpkg::Options::="--force-confold" python
-    
-    echo -e "${Y}[*] Installing required modules for JINN Command...${w}"
-    # 🔥 FIX: cryptography removed, only pycryptodome required!
-    python3 -m pip install requests rich urllib3 pycryptodome --quiet
-    
-    echo -e "${G}[✔] System Successfully Upgraded to 3.14 with all modules!${W}"
-else
-    if ! python3 -c "import requests, rich, urllib3, Cryptodome" &>/dev/null; then
-        echo -e "${Y}[!] Modules missing in Python 3.14. Installing now...${W}"
-        python3 -m pip install requests rich urllib3 pycryptodome --quiet
-    fi
-    echo -e "${G}[✔] System is Healthy.${W}"
+    echo "deb https://packages.termux.dev/apt/termux-main stable main" > $PREFIX/etc/apt/sources.list
+    apt-get update -y -q &>/dev/null
+    apt-get install -y -q python &>/dev/null
 fi
 
-# --- STEP 3: SMART JINN API APP VERIFICATION & DOWNLOAD ---
+# Check required Python modules
+if ! python3 -c "import requests, rich, urllib3, Cryptodome" &>/dev/null; then
+    echo -e "${Y}[*] Installing required Python modules (This may take a moment)...${W}"
+    python3 -m pip install --upgrade pip --quiet &>/dev/null
+    python3 -m pip install requests rich urllib3 pycryptodome --quiet &>/dev/null
+    echo -e "${G}[✔] Core modules installed successfully!${W}"
+else
+    echo -e "${G}[✔] System Packages are Healthy.${W}"
+fi
+
+# --- STEP 3: SMART JINN API APP VERIFICATION ---
 CONFIG_PATH="/sdcard/jinn_api_config.json"
 SHARED_CONFIG_PATH="$HOME/storage/shared/jinn_api_config.json"
 
@@ -67,9 +76,7 @@ if [ ! -f "$CONFIG_PATH" ] && [ ! -f "$SHARED_CONFIG_PATH" ]; then
         echo -e "\n${G}[*] Opening GitHub to download the JINN API App...${W}"
         sleep 1
         
-        # 🔥 FIX: Syntax error fixed and link updated to GitHub Releases
         GITHUB_URL="https://github.com/Hassan-jinn/Jinn/releases/latest"
-        
         if command -v termux-open-url &> /dev/null; then
             termux-open-url "$GITHUB_URL"
         else
@@ -87,14 +94,26 @@ else
     echo -e "${G}[✔] DRM Config Found! Authentication Ready.${W}"
 fi
 
-# --- STEP 4: SMART LAUNCHER ---
+# --- STEP 4: SMART ARCHITECTURE LAUNCHER ---
 echo -e "${C}[*] Launching JINN Engine...${W}"
 sleep 0.5
 ARCH=$(uname -m)
+
 if [[ "$ARCH" == "aarch64" ]]; then
-    chmod +x JINN64 && ./JINN64 "$@"
+    if [ -f "JINN64" ]; then
+        chmod +x JINN64 && ./JINN64 "$@"
+    else
+        echo -e "${R}[!] Error: JINN64 binary not found in current directory!${W}"
+        exit 1
+    fi
 elif [[ "$ARCH" == armv* ]] || [[ "$ARCH" == "x86_64" ]] || [[ "$ARCH" == "i686" ]]; then
-    chmod +x JINN32 && ./JINN32 "$@"
+    if [ -f "JINN32" ]; then
+        chmod +x JINN32 && ./JINN32 "$@"
+    else
+        echo -e "${R}[!] Error: JINN32 binary not found in current directory!${W}"
+        exit 1
+    fi
 else
     echo -e "${R}[!] Fatal Error: Unrecognized Architecture ($ARCH)${W}"
+    exit 1
 fi
